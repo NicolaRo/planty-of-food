@@ -2,11 +2,12 @@ const Order = require("../models/Order"); // Otteno l'oggetto 'Order' dal modell
 const Product = require("../models/Product"); //Ottengo l'oggetto 'Product'. 
 const User = require("../models/User"); //Ottengo l'oggetto 'User'.
 
-quali responsabilità ha --> mettere insieme il prodotto ordinato (con i riferimenti della data e l'ora) con l'utente che lo ha creato
+//Quali responsabilità ha --> 
+// mettere insieme il prodotto ordinato (con i riferimenti della data e l'ora) con l'utente che lo ha creato
     
-    OrderController è responsabile di:
-        creare un ordine
-        validare i dati
+    //OrderController è responsabile di:
+        //creare un ordine --> createOrder
+        //validare i dati
         controllare disponibilità prodotti
         calcolare il totale
         collegare l’ordine a:
@@ -16,7 +17,6 @@ quali responsabilità ha --> mettere insieme il prodotto ordinato (con i riferim
         cambiare stato ordine
         restituire risposte HTTP
 
-
     📋 FUNZIONI CHE UN OrderController DEVE AVERE
    
     🔹 CRUD base
@@ -24,15 +24,12 @@ quali responsabilità ha --> mettere insieme il prodotto ordinato (con i riferim
 
     const createOrder = async (req, res) => {
         try {
-        1. controllare che l'utente esista
-        2. controllare prodotti e disponibilià
-        3. calcolare il totale --> questo lo possiamo evitare
-        4. creare l'ordine
-        5. aggiornare quantità prodotti
-        6. restituire l'ordine
-        } catch (error)
-         res.status(500).json({message: error.message});
-         }
+            User._id = true
+            } catch (error) {
+                res.status(500).json({message: error.message});
+            }
+         
+         
         };
         
  
@@ -44,7 +41,7 @@ quali responsabilità ha --> mettere insieme il prodotto ordinato (con i riferim
                 2. controllare prodotti e disponibilità -> app.GET/product.name = Products.find();
                 3. creare l'ordine -> app.POST/Order =>{
                     const order = await Order.create ({ ... });
-                    reate.newOrder (product._id++, timeStamp,) {app.GET/User.findUserById();}
+                    create.newOrder (product._id++, timeStamp,) {app.GET/User.findUserById();}
                     };
                 4. aggiornare quantità prodotti ->
                 } catch (error) {
