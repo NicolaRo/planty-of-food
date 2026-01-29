@@ -26,7 +26,22 @@ const productSchema = new mongoose.Schema({
     required: [true, 'Il nome del prodotto è obbligatorio'], //Se non fornisco il nome compare un messaggio
     trim: true,
     minlength: [2, 'Il nome deve contenere almeno 2 caratteri']
-  }/* ,
+  },
+  type: {
+    type: Number,
+    enum: ["vegetable", "fruit", "drink", "other"],
+    required: [true, "Definire il tipo di prodotto"]
+  },
+  availability: {
+    type: Boolean,
+    default: true
+  },
+  quantity: {
+    type: Number,
+    required: true,
+    min: [0, "La quantità non può essere negativa"]
+  },
+  /* ,
   //predispongo all'aggiunta del valore prezzo per i prodotti
   price: {
     type: Number,
@@ -36,4 +51,5 @@ const productSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const Product = mongoose.model("Product", productSchema);
+
 module.exports = Product;

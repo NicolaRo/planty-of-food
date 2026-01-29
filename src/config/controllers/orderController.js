@@ -2,158 +2,131 @@ const Order = require("../models/Order"); // Otteno l'oggetto 'Order' dal modell
 const Product = require("../models/Product"); //Ottengo l'oggetto 'Product'. 
 const User = require("../models/User"); //Ottengo l'oggetto 'User'.
 
-//Quali responsabilità ha --> 
-// mettere insieme il prodotto ordinato (con i riferimenti della data e l'ora) con l'utente che lo ha creato
+//orderController.js deve -- Create - Read - Update - Delete -->
+
+//CREATE UN ORDINE
+    // Validare utente (User.findById)
+    // Validare il prodotto e disponibilità (Product.findById, e quantità ≥ richiesta)
+    // Aggiornare quantità dei prodotti
+    // Salvare ordine (Order.create)
+    // Collegare ordine all'utente (e ad un gruppo se presente)
+
+//READ GLI ORDINI
+    // Tutti (getOrders)
+    // Solo ordini utente loggato (getUserOrders)
+    // Singolo ordine per ID (getOrdersById)
+
+//UPDATE GLI ORDINI
+    // Cambiare stato (updateOrderStatus: pending -> paid -> delivered)
+    // Aggiornare quantità prodotti
+
+//DELETE GLI ORDINI
+    // Opzionale (deleteOrder)
     
-    //OrderController è responsabile di:
-        //creare un ordine --> createOrder
-        //validare i dati
-        controllare disponibilità prodotti
-        calcolare il totale
-        collegare l’ordine a:
-        utente
-        gruppo (se esiste)
-        aggiornare quantità prodotto
-        cambiare stato ordine
-        restituire risposte HTTP
-
-    📋 FUNZIONI CHE UN OrderController DEVE AVERE
-   
-    🔹 CRUD base
-    C= Create R= Read U= Update D= Delete
-
-    const createOrder = async (req, res) => {
-        try {
-            User._id = true
-            } catch (error) {
-                res.status(500).json({message: error.message});
-            }
-         
-         
-        };
+/* ############-- CREARE UN ORDINE --############### */
+       //1.1 Creazione del nuovo ordine: 
+       const createOrder = async (req, res) => {
+       try{
+        const {userId, products} = req.body;
         
- 
-        1️⃣ crea un nuovo ordine ==> createOrder
+        //1.2 Verifica Utente
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({message: "Utente non trovato"});
+        
+        //1.3 Controlla prodotti e disponibilità
+        for (let p of products) {
+            const product = await Product.findById(p.productId);
+            if(!product) return res.status (404).json({message: `${p.productId} non trovato` });
+            if (product.quantity < p.quantity)
+                return res.status (400).json({message: `L'articolo ${product.name} è attualmente esaurito`});
+        }
 
-            const createOrder = async (req, res) => {
-                try {
-                1. controllare che l'utente esista -> User.findById(userId)
-                2. controllare prodotti e disponibilità -> app.GET/product.name = Products.find();
-                3. creare l'ordine -> app.POST/Order =>{
-                    const order = await Order.create ({ ... });
-                    create.newOrder (product._id++, timeStamp,) {app.GET/User.findUserById();}
-                    };
-                4. aggiornare quantità prodotti ->
-                } catch (error) {
-                 res.status (500).json({message: error.message});
-                 }
-                 return (newOrder)
-                };
+        //1.4 Aggiorna la quantità dei prodotti
+        for (let p of products) {
+            await Product.findByIdAndUpdate(p.productId,{
+                $inc: {quantity: -p.quantity}
+            });
+        }
 
-        2️⃣ getOrders
 
-        const getOrders = async (req, res) => {
+        //1.5 Crea ordine
+        const order = await Order.create ({
+            user: user._id,
+            products,
+            total,
+            status: "pending",
+            createdAt: new Date()
+        });
+
+        return res.status(201).json(order);
+    } catch (error) {
+        return res.status(500).json({message: error.message}); 
+    }
+};
+
+/* ############-- READ UN ORDINE --############### */
+
+    //2.1 Ottenere TUTTI gli ordini
+    const getOrders = async (req, res) => {
+        try {
+            const orders = await Order.find().populate("user").populate("products.productId");
+            return res.json(orders);
+        } catch (error) {
+            return res.status(500).json ({message: error.message});
+        }
+    };
+
+    //2.2 Ottenere gli ordini dell'UTENTE LOGGATO
+    const getUserOrders = async (req, res) => {
+        try{
+            const userId = req.params.userId;
+            const orders = await Order.find({user: userId}).populate("products.productId");
+            return res.json(orders);
+        } catch (error) {
+            return res.status(500).json ({message: error.message});
+        }
+    };
+
+    //2.3 Ottenere singolo ordine per Id
+    const getOrderById = async (req, res) => {
+        try {
+            const order = await Order.findById(req.params.id).populate("user").populate("products.productsId");
+            if (!order) return res.status(404).json({message: "Ordine non trovato"});
+            return res.json(order);
+        } catch (error) {
+            return res.status(500).json({message: error.message});
+        }
+    };
+
+/* ############-- UPDATE UN ORDINE --############### */
+        const updateOrderStatus = async (req, res) => {
             try {
-                1.recupera tutti gli ordini o solo quelli dell'utente loggato
-                Order.find()
-                } catch (error) {
-             res.status(500).json({message: error.message});
-             }
-            };
-            recupera tutti gli ordini
-            (es. admin o... 
-            
-            storico utente)
-        const getUserOrders = async(req, res) => {
-            try{
-                1. recupera tutti gli ordini dell'utente -> Order.user = user._id
-                Order.findByUserName()
-                } catch (error){
-             res.status(500}.json({message:error.message});
+                const {status} = req.body;
+                const allowedStatuses = ["in lavorazione", "pagato", "consegnato"];
+                if (!allowedStatuses.includes(status)) 
+                    return res.status(400).json ({message: "Stato ordine non valido"});
+                
+                const order = await Order.findByIdAndUpdate(req.params.id, {status}, {new: true});
+                if (!order)
+                    return res.status(404).json({message: "Ordine non trovato"});
+            } catch (error) {
+                return res.status(500).json({message: error.message});
             }
         };
-
-            // Order.find(); -> per ottenere "Orders" la lista di tutti gli ordini
-            // Order.findById(id); -> per ottenere un ordine specifico
-
-        3️⃣ getOrderById
-            recupera un singolo ordine
-
-            const getOrderById = async (reqq, res) => {
-                try {
-                    1. recuperaun ordine specifico per ID
-                    Order.findById(req.params.id)
-                    } catch (error) {
-                     res.status(500).json({message:error.message});
-                     }
-            };
-
-            //Deve: app.get = (req, res) -> ricevere la query dal client
-            //Qua dovrebbe 
-
-
-
-        4️⃣ updateOrderStatus
-            cambia stato ordine
-            pending → paid → delivered
-
-            const updateOrderStatus = async (req, res) => {
-                try {
-                Order.findByIdAndUpdate(req.params.id, {status: req.body.status})
-                }catch(error){
-                res.status(500).json} ({message: error.message});
-                }
-            };
                 
 
-        5️⃣ deleteOrder (opzionale)
-            raramente usata, ma possibile
-            
-            const deleteOrder = async (req, res) => {
-                try{
-                Order.findByIdAndDelete(id);
-                } catch (error) {
-                res.status(500).json ({message: error.message}); 
-                }
-            };
-            
-            
+/* ############-- DELETE UN ORDINE --############### */
 
-
-    
-            /* 🌱 FUNZIONI BUSINESS (le più importanti)
-
-
-    
-
-        6️⃣ checkProductAvailability
-            Controlla:
-            prodotto esiste
-            quantità disponibile ≥ richiesta
-        7️⃣ updateProductQuantity
-            Quando ordine viene confermato:
-            scala quantità prodotto
-        8️⃣ calculateTotal
-            Somma:
-            prezzo × quantità
-
-cosa può fare un ordine --> può cambiare la disponibilità/quantità di un prodotto se confermato.
-quali controlli deve fare --> controllare che il prodotto sia disponibile, controllare che l'utente sia un utente valido.
-
-    ✔ utente esistente
-    ✔ prodotto esistente
-    ✔ quantità disponibile
-    ✔ ordine non duplicato
-    ✔ stato valido
-
-quali errori può generare --> può non reperire i dati del prodotto o dell'utente.
-
-    ❌ prodotto non trovato
-    ❌ utente non trovato
-    ❌ quantità insufficiente
-    ❌ ordine non valido
-    ❌ ID malformato
-    ❌ ordine già chiuso */
+        const deleteOrder = async (req, res) => {
+            try {
+                const order = await Order.findByIdAndDelete(req.params.id);
+                if(!order) 
+                    return res.status(404).json({message: "Ordine non trovato"});
+                return res.json({message: "Ordine cancellato correttamente"});
+            } catch (error) {
+                return res.status(500).json ({message: error.message});
+            }
+        };
 
     module.exports = { //--> esporto le funzioni
         createOrder,
