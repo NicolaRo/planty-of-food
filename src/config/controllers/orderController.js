@@ -26,6 +26,11 @@ const User = require("../models/User"); //Ottengo l'oggetto 'User'.
 /* ############-- CREARE UN ORDINE --############### */
        //1.1 Creazione del nuovo ordine: 
        const createOrder = async (req, res) => {
+        
+        //1.1.1 Avvio una sessione che conterrà la creazione nuovi prodotti e nuovi ordini e le gestira
+        //assieme per farle andare a buon fine (o meno) entrambe e non avere discrepanze di dati nel database.
+        const session = await mongoose.startSession();
+
        try{
         const {userId, products} = req.body;
         
@@ -35,32 +40,66 @@ const User = require("../models/User"); //Ottengo l'oggetto 'User'.
         
         //1.3 Controlla prodotti e disponibilità
         for (let p of products) {
-            const product = await Product.findById(p.productId);
-            if(!product) return res.status (404).json({message: `${p.productId} non trovato` });
+            const product = await Product.findById(p.product);
+
+            if(!product) return res.status (404).json({
+                message: `${p.product} non trovato`
+            });
             if (product.quantity < p.quantity)
-                return res.status (400).json({message: `L'articolo ${product.name} è attualmente esaurito`});
+                return res.status (400).json({
+                    message: `L'articolo ${product.name} è attualmente esaurito`
+                });
         }
+
+        //--- GESTISCO LA TRANSACTION ---
+        //Mi consente anche di definire che la "CREATE ORDINE" avviene all'interno della {session}
+        session.startTransaction();
 
         //1.4 Aggiorna la quantità dei prodotti
         for (let p of products) {
-            await Product.findByIdAndUpdate(p.productId,{
-                $inc: {quantity: -p.quantity}
-            });
+            await Product.findByIdAndUpdate(
+                p.product,
+                { $inc: {quantity: -p.quantity}},
+                {session}
+            );
         }
 
-
         //1.5 Crea ordine
-        const order = await Order.create ({
-            user: user._id,
-            products,
-            total,
-            status: "pending",
-            createdAt: new Date()
-        });
+        //NOTE lo inserisco all'interno di un Array [] perchè è come vengono restituiti i dati da MongoDB
+        
+        const order = await Order.create ([
+                {
+                    user: user._id,
+                    products,
+                    status: "pending",
+                }
+            ], {session} 
+        );
 
-        return res.status(201).json(order);
+        //1.6 Commit della transazione (così n° prodotti e ordini vengono aggiornati insieme o non aggiornati del tutto per manetere coerenza con database)
+        await session.commitTransaction();
+        session.endSession();
+
+        // BONUS: Verifico il contenuto dell'ordine appena creato -> dovrò implementare withTransaction in produzione
+        //per verificare che l'update dei prodotti sia coerente con la creazione dell'ordine.
+        console.log("Ordine creato:", order[0]._id);
+                
+
+        return res.status(201).json(order[0]);
+
     } catch (error) {
-        return res.status(500).json({message: error.message}); 
+        //Se l'errore sorge prima dello "startTransaction" abortisco l'operazione
+        if (session.inTransaction()){
+        //NOTE: nel caso di errore "abort.transaction" e "endSession" consentono di NON caricare i dati su di un unico database o entrambi o niente.
+        await session.abortTransaction();
+        }
+        //..e chiudo la sessione così nulla viene committato e i files restano con l'ultimo aggiornamento "SICURO" postato nel DB.
+        session.endSession();
+        
+        //NOTE: lo verifico con un console.log per debugging
+        console.error("Transaction abortita", error.message);
+        
+        return res.status(500).json({message: "Errore durante la creazione dell'ordine, riprova tra poco"}); 
     }
 };
 
@@ -69,7 +108,7 @@ const User = require("../models/User"); //Ottengo l'oggetto 'User'.
     //2.1 Ottenere TUTTI gli ordini
     const getOrders = async (req, res) => {
         try {
-            const orders = await Order.find().populate("user").populate("products.productId");
+            const orders = await Order.find().populate("user").populate("products.product");
             return res.json(orders);
         } catch (error) {
             return res.status(500).json ({message: error.message});
@@ -80,7 +119,7 @@ const User = require("../models/User"); //Ottengo l'oggetto 'User'.
     const getUserOrders = async (req, res) => {
         try{
             const userId = req.params.userId;
-            const orders = await Order.find({user: userId}).populate("products.productId");
+            const orders = await Order.find({user: userId}).populate("products.product");
             return res.json(orders);
         } catch (error) {
             return res.status(500).json ({message: error.message});
@@ -90,7 +129,7 @@ const User = require("../models/User"); //Ottengo l'oggetto 'User'.
     //2.3 Ottenere singolo ordine per Id
     const getOrderById = async (req, res) => {
         try {
-            const order = await Order.findById(req.params.id).populate("user").populate("products.productsId");
+            const order = await Order.findById(req.params.id).populate("user").populate("products.product");
             if (!order) return res.status(404).json({message: "Ordine non trovato"});
             return res.json(order);
         } catch (error) {
@@ -106,12 +145,17 @@ const User = require("../models/User"); //Ottengo l'oggetto 'User'.
                 if (!allowedStatuses.includes(status)) 
                     return res.status(400).json ({message: "Stato ordine non valido"});
                 
-                const order = await Order.findByIdAndUpdate(req.params.id, {status}, {new: true});
+                const order = await Order.findByIdAndUpdate(
+                    req.params.id, 
+                    {status}, 
+                    {new: true}
+                );
                 if (!order)
                     return res.status(404).json({message: "Ordine non trovato"});
+                return res.json(order);
             } catch (error) {
                 return res.status(500).json({message: error.message});
-            }
+            } 
         };
                 
 

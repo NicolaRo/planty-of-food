@@ -28,7 +28,7 @@ const productSchema = new mongoose.Schema({
     minlength: [2, 'Il nome deve contenere almeno 2 caratteri']
   },
   type: {
-    type: Number,
+    type: String,
     enum: ["vegetable", "fruit", "drink", "other"],
     required: [true, "Definire il tipo di prodotto"]
   },

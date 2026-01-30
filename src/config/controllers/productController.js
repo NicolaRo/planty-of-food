@@ -42,7 +42,7 @@ Quindi:
             const {name, type, quantity} = req.body;
 
             //1.2 Validare prodotto -> se "type" non disponibile = (404)
-            if (!name || !type)
+            if (!name || !type || quantity === undefined)
                 return res.status(400).json({message: "Dati prodotto mancanti"});
             
             //1.3 Creare prodotto nel DB -> Product.create()
@@ -51,13 +51,6 @@ Quindi:
             type,
             quantity,
         });
-
-        //1.2 Validare prodotto -> se "type" non disponibile = (404)
-        const allowedTypes = ["vegetable", "fruit", "drink"];
-
-        if(!allowedTypes.includes(type)) {
-            return res.status(400).json ({message: "Tipo prodotto non supportato"})
-        }
 
         //1.4 Restituire prodotto creato al client -> HTTP 201
         return res.status(201).json(product);
