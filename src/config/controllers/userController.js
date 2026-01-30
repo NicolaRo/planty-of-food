@@ -31,7 +31,7 @@ CRUD
     4.3 Eliminare Utente -> Utente.findUtenteByIdAndDelete(id);
     4.4 Confermare avvenuta eliminazione  */
 
-/* ############-- CREATE UN UTENTE --############### */
+/* ############-- CREATE UTENTE --############### */
     //1.1 Validare un utente
     const createUser = async (req, res) => {
         try {
@@ -54,7 +54,7 @@ CRUD
         }
     }
 
-/* ############-- READ UN UTENTE --############### */
+/* ############-- READ UTENTE --############### */
 
 //2.1 Recuperare tutti gli utenti
 const getUsers = async (req, res) => {
@@ -96,7 +96,7 @@ const getUserById = async (req, res) => {
     }
 };
 
-/* ############-- UPDATE UN UTENTE --############### */
+/* ############-- UPDATE UTENTE --############### */
 
 //3 Aggiornare gli utenti
 const updateUser = async (req, res) => {
@@ -120,7 +120,7 @@ const updateUser = async (req, res) => {
     }
 };
 
-/* ############-- DELETE UN PRODOTTO --############### */
+/* ############-- DELETE UTENTE --############### */
 
 const deleteUser = async (req, res) => {
     try {

@@ -106,6 +106,8 @@ const User = require("../models/User"); //Ottengo l'oggetto 'User'.
 /* ############-- READ UN ORDINE --############### */
 
     //2.1 Ottenere TUTTI gli ordini
+    
+    
     const getOrders = async (req, res) => {
         try {
             const orders = await Order.find().populate("user").populate("products.product");
