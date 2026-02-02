@@ -29,3 +29,5 @@ router.get("/:id", orderController.getOrderById);
 
 //3.Ottengo l'array con tutti gli ordini
 router.get("/", orderController.getOrders);
+
+/* ############-- ROTTE GET --############### */

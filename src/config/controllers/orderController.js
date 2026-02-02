@@ -1,7 +1,9 @@
+const mongoose = require("mongoose"); //Ottengo mongoose per la gestione del database.
 const Order = require("../models/Order"); // Otteno l'oggetto 'Order' dal modello mongoose.
 const Product = require("../models/Product"); //Ottengo l'oggetto 'Product'. 
 const User = require("../models/User"); //Ottengo l'oggetto 'User'.
 
+const {updateProductStock}= require('../utils/stockHelper.js'); //Importo la funzione helper per aggiornare lo stock sia in GET che POST
 //orderController.js deve -- Create - Read - Update - Delete -->
 
 //CREATE UN ORDINE
@@ -34,99 +36,96 @@ const User = require("../models/User"); //Ottengo l'oggetto 'User'.
        try{
         const {userId, products} = req.body;
         
-        //1.2 Verifica Utente
+        //1.1.2 Validazione base input
+        //Ovvero verifichiamo le condizioni per cui possiamo accettare l'inserimento di un ordine (come devono essere costituiti i dati per essere registrati nel database)
+        if (!userId || !Array.isArray(products) || products.length === 0) {
+            return res.status(400).json({message: "Dati ordine mancanti o non validi"});
+        }
+
+        for (let p of products) {
+            if (!p.product || !p.quantity || p.quantity <= 0) {
+                return res.status(400).json({ message: "Ogni prodotto deve avere id e quantità positiva"});
+            }
+        }
+
+        //1.2.1 Verifica Utente
         const user = await User.findById(userId);
         if (!user) return res.status(404).json({message: "Utente non trovato"});
-        
-        //1.3 Controlla prodotti e disponibilità
-        for (let p of products) {
-            const product = await Product.findById(p.product);
-
-            if(!product) return res.status (404).json({
-                message: `${p.product} non trovato`
-            });
-            if (product.quantity < p.quantity)
-                return res.status (400).json({
-                    message: `L'articolo ${product.name} è attualmente esaurito`
-                });
-        }
 
         //--- GESTISCO LA TRANSACTION ---
         //Mi consente anche di definire che la "CREATE ORDINE" avviene all'interno della {session}
-        session.startTransaction();
-
-        //1.4 Aggiorna la quantità dei prodotti
-        for (let p of products) {
-            await Product.findByIdAndUpdate(
-                p.product,
-                { $inc: {quantity: -p.quantity}},
-                {session}
-            );
-        }
-
-        //1.5 Crea ordine
-        //NOTE lo inserisco all'interno di un Array [] perchè è come vengono restituiti i dati da MongoDB
+        await session.withTransaction(async ()=> {
+            //1.4 Aggiorna la quantità dei prodotti
+        await updateProductStock(products, session);
         
-        const order = await Order.create ([
+        // 1.5 Creo l'ordine
+        const [order] = await Order.create(
+            [
                 {
                     user: user._id,
                     products,
                     status: "pending",
                 }
-            ], {session} 
+            ], 
+            {session}
         );
-
-        //1.6 Commit della transazione (così n° prodotti e ordini vengono aggiornati insieme o non aggiornati del tutto per manetere coerenza con database)
-        await session.commitTransaction();
-        session.endSession();
-
-        // BONUS: Verifico il contenuto dell'ordine appena creato -> dovrò implementare withTransaction in produzione
+        // BONUS: Verifico il contenuto dell'ordine appena creato implementato con withTransaction pronto per la produzione
         //per verificare che l'update dei prodotti sia coerente con la creazione dell'ordine.
-        console.log("Ordine creato:", order[0]._id);
-                
-
-        return res.status(201).json(order[0]);
-
+        console.log("Ordine creato:", order._id);
+        res.status(201).json(order);
+    });
     } catch (error) {
-        //Se l'errore sorge prima dello "startTransaction" abortisco l'operazione
-        if (session.inTransaction()){
-        //NOTE: nel caso di errore "abort.transaction" e "endSession" consentono di NON caricare i dati su di un unico database o entrambi o niente.
-        await session.abortTransaction();
-        }
-        //..e chiudo la sessione così nulla viene committato e i files restano con l'ultimo aggiornamento "SICURO" postato nel DB.
+        console.error("Errore cerazione ordine:", error.message);
+        res.status(500).json({message:"Errore durante la creazione dell'ordine, riprova"});
+    } finally {
+        //Chiudo la sessione con finally per una migliore gestione del codice.
         session.endSession();
-        
-        //NOTE: lo verifico con un console.log per debugging
-        console.error("Transaction abortita", error.message);
-        
-        return res.status(500).json({message: "Errore durante la creazione dell'ordine, riprova tra poco"}); 
-    }
+    } 
 };
 
 /* ############-- READ UN ORDINE --############### */
 
     //2.1 Ottenere TUTTI gli ordini
     
-    
     const getOrders = async (req, res) => {
-        try {
-            const orders = await Order.find().populate("user").populate("products.product");
-            return res.json(orders);
-        } catch (error) {
-            return res.status(500).json ({message: error.message});
-        }
-    };
+    try {
+        // 2.2.1 Leggo i filtri dalla query string
+        const { date, product, userId } = req.query;
 
-    //2.2 Ottenere gli ordini dell'UTENTE LOGGATO
-    const getUserOrders = async (req, res) => {
-        try{
-            const userId = req.params.userId;
-            const orders = await Order.find({user: userId}).populate("products.product");
-            return res.json(orders);
-        } catch (error) {
-            return res.status(500).json ({message: error.message});
-        }
-    };
+        // 2.2.2 Creo filtro dinamico
+        const filter = {};
+
+        // 2.2.3 Filtro per data di inserimento
+        if (date) {
+        const start = new Date(date);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(date);
+        end.setHours(23, 59, 59, 999);
+        filter.createdAt = { $gte: start, $lte: end };
+
+    //2.3 Ottenere gli ordini dell'UTENTE LOGGATO
+    } if (userId) {
+        filter.user = userId;
+    }
+
+    // 2.4 Filtro per prodotto contenuto nell’ordine
+    if (product) {
+      filter["products.product"] = product;
+    }
+
+    // 2.5 Query finale
+    const orders = await Order.find(filter)
+      .populate("user")
+      .populate("products.product");
+
+    return res.status(200).json(orders);
+
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message
+    });
+  }
+};
 
     //2.3 Ottenere singolo ordine per Id
     const getOrderById = async (req, res) => {
@@ -140,44 +139,87 @@ const User = require("../models/User"); //Ottengo l'oggetto 'User'.
     };
 
 /* ############-- UPDATE UN ORDINE --############### */
-        const updateOrderStatus = async (req, res) => {
-            try {
-                const {status} = req.body;
-                const allowedStatuses = ["in lavorazione", "pagato", "consegnato"];
-                if (!allowedStatuses.includes(status)) 
-                    return res.status(400).json ({message: "Stato ordine non valido"});
-                
-                const order = await Order.findByIdAndUpdate(
-                    req.params.id, 
-                    {status}, 
-                    {new: true}
-                );
-                if (!order)
-                    return res.status(404).json({message: "Ordine non trovato"});
-                return res.json(order);
-            } catch (error) {
-                return res.status(500).json({message: error.message});
+const updateOrder = async (req, res) => {
+    
+    //Avvio la sessione con mongoose 
+    const session = await mongoose.startSession();
+    
+    try {
+        const orderId = req.params.id
+        const { products: newProducts, status} = req.body;
+
+        const order = await Order.findById(orderId);
+
+        if (!order)
+            return res.status(404).json({message: "Ordine non trovato"});
+
+        await session.withTransaction(async() => {
+            //Aggiorna stock dei nuovi prodotti se prensenti
+            //Se presente un new products ed è maggiore di "0"
+            if(newProducts && newProducts.length>0) {
+                //Attendi che venga "eseguite la updateProductsStock" sui newProducts all'interno della "session"
+                await updateProductStock(newProducts, session);
+                //A quel punto pusha il "newProducts" sul database.
+                order.products.push(...newProducts);
+            }
+            //Aggiorna lo status ordine se presente
+            if(status) {
+                const allowedStatuses = ["pending", "paid", "delivered"];
+                if(!allowedStatuses.includes(status)) {
+                    throw new Error ("Stato ordine non valido");
+                }
+                order.status = status;
             } 
-        };
-                
+            await order.save ({session});
+            
+        }); 
+        res.status(200).json(order);
+
+    } catch (error) {
+        console.error("Errore aggiornamento ordine", error.message);
+        res.status(500).json ({message: error.message});
+    } finally {
+        session.endSession();
+    }
+};
 
 /* ############-- DELETE UN ORDINE --############### */
 
         const deleteOrder = async (req, res) => {
+            const session = await mongoose.startSession();
+
             try {
-                const order = await Order.findByIdAndDelete(req.params.id);
-                if(!order) 
-                    return res.status(404).json({message: "Ordine non trovato"});
-                return res.json({message: "Ordine cancellato correttamente"});
+                const orderId = req.params.id;
+
+                await session.withTransaction(async() => {
+                    const order = await Order.findById(orderId).session(session);
+                    if (!order) throw new Error ("Ordine non trovato");
+            
+                    //Ripristino stock prodotti
+                    for (let p of order.products) {
+                        await Product.findByIdAndUpdate (
+                            p.product,
+                            {$inc: {quantity : p.quantity}},
+                            {session}
+                        );
+                    }
+                    await Order.findByIdAndDelete(orderId).session(session);
+                });
+                res.json({message: "Ordine cancellato e stock ripristinato correttamente"});
+
             } catch (error) {
+                console.error("Errore cancellazione ordine:", error.message);
                 return res.status(500).json ({message: error.message});
-            }
-        };
+            } finally {
+                session.endSession();
+            };
+        }
+            
 
     module.exports = { //--> esporto le funzioni
         createOrder,
         getOrders,
         getOrderById,
-        updateOrderStatus,
+        updateOrder,
         deleteOrder
     };
