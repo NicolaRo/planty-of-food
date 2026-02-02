@@ -22,7 +22,7 @@ const orderController = require('../controllers/orderController');
 /* ############-- ROTTE GET --############### */
 
 //1. Ottengo l'ordine di un Utente con utendeId
-router.get("/user/:userId", orderController.getUserOrders); 
+router.get("/user", orderController.getOrders); 
 
 //2. Ottengo l'ordine con orderId
 router.get("/:id", orderController.getOrderById);
@@ -30,4 +30,16 @@ router.get("/:id", orderController.getOrderById);
 //3.Ottengo l'array con tutti gli ordini
 router.get("/", orderController.getOrders);
 
-/* ############-- ROTTE GET --############### */
+/* ############-- ROTTE POST --############### */
+
+//1. Aggiorno un ordine esistente
+router.put("order/:id",orderController.updateOrder);
+
+//2. Creo un ordine
+router.post("/",orderController.createOrder);
+
+/* ############-- ROTTE DELETE --############### */
+
+//1. Elimino un ordine esistente
+router.delete("/:id", orderController.deleteOrder);
+

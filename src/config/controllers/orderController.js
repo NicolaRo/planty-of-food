@@ -154,6 +154,7 @@ const updateOrder = async (req, res) => {
             return res.status(404).json({message: "Ordine non trovato"});
 
         await session.withTransaction(async() => {
+            
             //Aggiorna stock dei nuovi prodotti se prensenti
             //Se presente un new products ed è maggiore di "0"
             if(newProducts && newProducts.length>0) {
