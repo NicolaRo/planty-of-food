@@ -2,7 +2,7 @@
 require('dotenv').config();
 
 // Importa l'applicazione Express
-const app = require('/src/app');
+const app = require('./src/app');
 
 // Importa la funzione di connessione al database
 const connectDB = require('./src/config/database');

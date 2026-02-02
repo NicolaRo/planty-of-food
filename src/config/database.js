@@ -6,18 +6,12 @@ const mongoose = require('mongoose');
  */
 const connectDB = async () => {
   try {
-    // Opzioni di connessione consigliate
-    const options = {
-      // Usa il nuovo parser dell'URL di MongoDB
-      // (evita warning di deprecazione)
-    };
-
     // Tenta la connessione
-    const conn = await mongoose.connect(process.env.MONGODB_URI, options);
+    const conn = await mongoose.connect(process.env.MONGO_URI);
 
     console.log(`📦 MongoDB connesso: ${conn.connection.host}`);
     console.log(`🗄️  Database: ${conn.connection.name}`);
-
+    
   } catch (error) {
     console.error('❌ Errore connessione MongoDB:', error.message);
     
