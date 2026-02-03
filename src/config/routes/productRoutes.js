@@ -35,3 +35,5 @@ router.put("/:id", productController.updateProduct);
 
 // 1. Elimino un prodotto esistente
 router.delete("/:id", productController.deleteProduct);
+
+module.exports = router;

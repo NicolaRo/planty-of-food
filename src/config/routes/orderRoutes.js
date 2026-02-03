@@ -46,3 +46,6 @@ router.delete("/:id", orderController.deleteOrder);
 
 /* ############-- TO DO --############### */
 //In contesto aziendale implementazione Middleware per gestione auth/admin
+
+
+module.exports = router;

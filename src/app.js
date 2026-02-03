@@ -3,6 +3,11 @@ const express = require('express');
 // Crea l'applicazione Express
 const app = express();
 
+// Importo i files routes per poterne disporre più sotto
+const userRoutes = require('./config/routes/userRoutes');
+const productRoutes = require('./config/routes/productRoutes');
+const orderRoutes = require('./config/routes/orderRoutes');
+
 // ========== MIDDLEWARE ==========
 
 // 1. Parse JSON nel body delle richieste
@@ -41,7 +46,11 @@ app.get('/health', (req, res) => {
   });
 });
 
-// TODO: Qui aggiungeremo le routes per products, users, orders
+// Qui aggiungo le routes per products, users, orders
+
+app.use('/api/users', userRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/orders', orderRoutes);
 
 // ========== ERROR HANDLING ==========
 

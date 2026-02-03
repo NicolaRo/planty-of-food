@@ -33,3 +33,5 @@ router.put("/:id", userController.updateUser);
 
 // 5. Indirizzo alla cancellazione di un Utente
 router.delete("/:id", userController.deleteUser);
+
+module.exports = router;
