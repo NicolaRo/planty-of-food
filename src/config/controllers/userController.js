@@ -1,4 +1,9 @@
 const User = require("../models/User"); //Ottengo l'oggetto 'User'.
+ // DEBUG *** TEMPORANEO ***
+const createUserDebug = async (req, res) => {
+    console.log('DEBUG req.body:', req.body);
+    res.json({ message: 'DEBUG completato' });
+};
 
 /* userController responsabile per ->
 
@@ -139,4 +144,5 @@ module.exports = {
     getUserById,
     updateUser,
     deleteUser,
+    createUserDebug
 }

@@ -13,6 +13,9 @@ const router = express.Router();
 
 const userController = require('../controllers/userController');
 
+// funzione di debug
+router.post("/debug", userController.createUserDebug);
+
 /* ############-- ROTTE GET --############### */
 
 // 1. Indirizzo alla lettura di un Utente specifico
