@@ -13,12 +13,22 @@ const updateProductStock = async (products, session = null) => {
     // Recupero il prodotto dal DB
     const product = await Product.findById(p.product).session(session);
 
+    //Prodotto inesistente -> 404
     if (!product) {
-      throw new Error(`Prodotto ${p.product} non trovato`);
+      const err = new Error (`Prodotto ${p.product} non trovato`)
+        err.status = 404;
+        err.type = "business";
+        throw err;
     }
 
+    //Stock insufficiente -> 409
     if (product.quantity < p.orderedQuantity) {
-      throw new Error(`L'articolo ${product.name} è esaurito`);
+      const err = new Error(
+        `Stock insufficiente per il prodotto ${product.name}`
+      );
+      err.status=409;
+      err.type="business";
+      throw err;
     }
 
     // Aggiorno la quantità
