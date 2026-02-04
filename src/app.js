@@ -1,5 +1,8 @@
 const express = require('express');
 
+//Importo mongoSanitize per proteggere da attacci No-SQL-Injection
+const mongoSanitize = require('express-mongo-sanitize');
+
 // Crea l'applicazione Express
 const app = express();
 
@@ -14,7 +17,10 @@ const orderRoutes = require('./config/routes/orderRoutes');
 // (senza questo, req.body sarebbe undefined)
 app.use(express.json());
 
-/* // 2. Parse URL-encoded data (form) --> questo parsa i form
+// 2. Protezione NoSQL Injection
+app.use(mongoSanitize());
+
+/* // 3. Parse URL-encoded data (form) --> questo parsa i form
 app.use(express.urlencoded({ extended: true })); */
 
 // 3. Logging semplice per debug

@@ -163,10 +163,12 @@ const updateOrder = async (req, res) => {
     const orderId = req.params.id;
     const { products: newProducts, status, userId } = req.body;
 
+    //Controllo se l'ordine esiste
     const order = await Order.findById(orderId);
 
     if (!order) return res.status(404).json({ message: "Ordine non trovato" });
 
+    //Controllo ed aggiorno l'utente (se passato)
     if (userId) {
         const user = await User.findById(userId);
         if (!user) {
@@ -193,6 +195,8 @@ const updateOrder = async (req, res) => {
         const allowedStatuses = ["pending", "paid", "delivered"];
         if (!allowedStatuses.includes(status)) {
           throw new Error("Stato ordine non valido");
+          err.status = 422; //Unprocessable Entity
+          throw err;
         }
         order.status = status;
       }
@@ -203,7 +207,7 @@ const updateOrder = async (req, res) => {
     console.error("Errore aggiornamento ordine", error.message);
 
     if (error.status){
-        return re.status(error.status).json({message:error.message});
+        return res.status(error.status).json({message:error.message});
     }
     res.status(500).json({ message: "Errore interno del server" });
   } finally {
@@ -215,12 +219,19 @@ const updateOrder = async (req, res) => {
 
 const deleteOrder = async (req, res) => {
   const session = await mongoose.startSession();
+  
 
   try {
     const orderId = req.params.id;
 
+    //console.log per debug
+  console.log("DELETE request received, orderId:", orderId);
+
     await session.withTransaction(async () => {
       const order = await Order.findById(orderId).session(session);
+      //console.log per debug
+      console.log("Order fetched from DB:", order);
+
       if (!order) throw new Error("Ordine non trovato");
 
       //Ripristino stock prodotti
@@ -234,13 +245,12 @@ const deleteOrder = async (req, res) => {
       await Order.findByIdAndDelete(orderId).session(session);
     });
     //BEST PRACTICES: NEI DELETE CHE RITORNANO STATUS CODE: 204 NON VA MAI MOSTRATO UN MESSAGGIO DI CONFERMA
-    return res.status(204)
-      .json /* ({message: "Ordine cancellato e stock ripristinato correttamente"}) */;
+    return res.status(204).send(); /* ({message: "Ordine cancellato e stock ripristinato correttamente"}) */;
   } catch (error) {
     console.error("Errore cancellazione ordine:", error.message);
     return res.status(500).json({ message: error.message });
   } finally {
-    session.endSession();
+    await session.endSession();
   }
 };
 
