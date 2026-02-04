@@ -48,7 +48,7 @@ const createOrder = async (req, res) => {
       if (!p.product || !p.orderedQuantity || p.orderedQuantity <= 0) {
         return res
           .status(400)
-          .json({ message: "Ogni prodotto deve avere id e quantità positiva" });
+          .json({ message: "Ogni prodotto deve avere id valido e quantità positiva" });
       }
     }
 

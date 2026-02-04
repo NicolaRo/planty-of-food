@@ -33,7 +33,7 @@ router.get("/", orderController.getOrders);
 /* ############-- ROTTE POST --############### */
 
 //1. Aggiorno un ordine esistente
-router.put("order/:id",orderController.updateOrder);
+router.put("/:id",orderController.updateOrder);
 
 //2. Creo un ordine
 router.post("/",orderController.createOrder);

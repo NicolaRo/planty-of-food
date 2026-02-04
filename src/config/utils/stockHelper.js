@@ -17,14 +17,14 @@ const updateProductStock = async (products, session = null) => {
       throw new Error(`Prodotto ${p.product} non trovato`);
     }
 
-    if (product.quantity < orderedQuantity) {
+    if (product.quantity < p.orderedQuantity) {
       throw new Error(`L'articolo ${product.name} è esaurito`);
     }
 
     // Aggiorno la quantità
     await Product.findByIdAndUpdate(
       p.product,
-      { $inc: { quantity: -orderedQuantity } },
+      { $inc: { quantity: -p.orderedQuantity } },
       { session }
     );
   }

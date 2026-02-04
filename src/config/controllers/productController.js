@@ -41,7 +41,7 @@ Quindi:
         try {
             const {name, type, quantity} = req.body;
 
-            //1.2 Validare prodotto -> se "type" non disponibile = (404)
+            //1.2 Validare prodotto -> se "name", OR "type", OR "quantity" non disponibile = (404)
             if (!name || !type || quantity === undefined)
                 return res.status(400).json({message: "Dati prodotto mancanti"});
             
