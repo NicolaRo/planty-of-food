@@ -43,7 +43,7 @@ const {updateProductStock}= require('../utils/stockHelper.js'); //Importo la fun
         }
 
         for (let p of products) {
-            if (!p.product || !p.quantity || p.quantity <= 0) {
+            if (!p.product || !p.orderedQuantity || p.orderedQuantity <= 0) {
                 return res.status(400).json({ message: "Ogni prodotto deve avere id e quantità positiva"});
             }
         }
@@ -200,7 +200,7 @@ const updateOrder = async (req, res) => {
                     for (let p of order.products) {
                         await Product.findByIdAndUpdate (
                             p.product,
-                            {$inc: {quantity : p.quantity}},
+                            {$inc: {quantity : p.orderedQuantity}},
                             {session}
                         );
                     }
