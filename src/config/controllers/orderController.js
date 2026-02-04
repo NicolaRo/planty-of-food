@@ -201,7 +201,11 @@ const updateOrder = async (req, res) => {
     res.status(200).json(order);
   } catch (error) {
     console.error("Errore aggiornamento ordine", error.message);
-    res.status(500).json({ message: error.message });
+
+    if (error.status){
+        return re.status(error.status).json({message:error.message});
+    }
+    res.status(500).json({ message: "Errore interno del server" });
   } finally {
     session.endSession();
   }
