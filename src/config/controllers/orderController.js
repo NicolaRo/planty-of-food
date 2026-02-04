@@ -161,11 +161,19 @@ const updateOrder = async (req, res) => {
 
   try {
     const orderId = req.params.id;
-    const { products: newProducts, status } = req.body;
+    const { products: newProducts, status, userId } = req.body;
 
     const order = await Order.findById(orderId);
 
     if (!order) return res.status(404).json({ message: "Ordine non trovato" });
+
+    if (userId) {
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({message: "Utente non trovato"});
+        }
+        order.user= user._id;
+    }
 
     await session.withTransaction(async () => {
       
