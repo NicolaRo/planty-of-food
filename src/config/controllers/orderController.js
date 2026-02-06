@@ -104,6 +104,12 @@ const getOrders = async (req, res) => {
     // 2.2.1 Leggo i filtri dalla query string
     const { date, product, userId } = req.query;
 
+
+    // Console.log per debug
+    console.log("📥 Query params ricevuti:", req.query);
+    console.log("📅 Valore 'date' ricevuto:", date);
+    console.log("📅 Tipo di 'date':", typeof date);
+
     // 2.2.2 Creo filtro dinamico
     const filter = {};
 
@@ -114,8 +120,17 @@ const getOrders = async (req, res) => {
 
       const end = new Date(date);
       end.setHours(23, 59, 59, 999);
+
+      // console.log per debug
+      console.log("🕐 Start date:", start);
+      console.log("🕐 End date:", end);
+
+
       filter.createdAt = { $gte: start, $lte: end };
 
+      // console.log per debug
+      console.log("🔍 Filtro finale:", filter);
+      
       //2.3 Ottenere gli ordini dell'UTENTE LOGGATO
     }
     if (userId) {
