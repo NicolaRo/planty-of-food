@@ -18,7 +18,11 @@ const orderRoutes = require('./config/routes/orderRoutes');
 app.use(express.json());
 
 // 2. Protezione NoSQL Injection
-app.use(mongoSanitize());
+app.use(mongoSanitize({
+  onSanitize: ({ req, key }) => {
+    console.warn(`⚠️ Tentativo NoSQL Injection rilevato in: ${key}`);
+  },
+}));
 
 /* // 3. Parse URL-encoded data (form) --> questo parsa i form
 app.use(express.urlencoded({ extended: true })); */
