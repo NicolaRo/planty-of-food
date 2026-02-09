@@ -18,7 +18,7 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 //Importo userController e User ovvero i file contenenti le funzioni da testare
-const userController = require('../../../../planty-of-food/src/config/controllers/userController');
+const userController = require('../../../src/config/controllers/userController');
 const User = require('../../../src/config/models/User');
 
 //Descrivo cosa voglio testare: la funzione createUser all'interno del file userController
