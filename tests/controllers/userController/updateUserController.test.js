@@ -78,6 +78,44 @@ describe('Update User Controller', () => {
     //Ripristino lo stub per non contaminare altri test
     updateStub.restore();
     });
+    it('should return 404 if the user ID does not exist', async () => {
+        //ARRANGE
+        const req = {
+            params: { id: 'nonexistent-id'},
+            body:{
+                name: 'Luigi',
+                surname: 'Verdi',
+                email: 'luigi@example.com'
+            }
+        };
+        
+        const res = {
+            status: sinon.stub().returnsThis(),
+            json: sinon.spy()
+        };
+
+        //stub di findByIdAndUpdate per simulare ID inesistente (ritorna null)
+        const updateStub = sinon.stub(User, 'findByIdAndUpdate').resolves(null);
+
+        //ACT
+        await userController.updateUser(req, res);
+
+        //ASSERT
+        //Verifica che il DB sia stato chiamato con i parametri corretti
+        expect(updateStub.calledOnce).to.be.true;
+
+        expect(updateStub.firstCall.args[0]).to.equal('nonexistent-id');
+        
+        expect(updateStub.firstCall.args[1]).to.deep.equal(req.body);
+
+        expect(updateStub.firstCall.args[2]).to.include({new: true, runValidators: true});
+
+        expect(res.status.calledOnceWith(404)).to.be.true;
+
+        expect(res.json.calledOnceWithMatch({message: "Utente non trovato"})).to.be.true;
+
+        updateStub.restore();
+    });
 
 
 });
