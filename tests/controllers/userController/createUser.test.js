@@ -108,10 +108,7 @@ describe('UserController', () => {
 
     it('should return 500 if the DB fails', async () => {
 
-      // --------------------
-      // 1️⃣ ARRANGE
-      // --------------------
-    
+      //ARRANGE
       // Creo req finto con dati validi, come nel caso di successo
       const req = {
         body: {
@@ -121,7 +118,7 @@ describe('UserController', () => {
         }
       };
     
-      // Creo res finto come sempre: 
+      // Creo res finto: 
       // - status è uno stub che restituisce se stesso per poter fare .status().json()
       // - json è uno spy per osservare cosa viene passato
       const res = {

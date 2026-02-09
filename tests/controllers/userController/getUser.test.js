@@ -145,7 +145,7 @@ describe('UserController',() => {
             expect(res.json.calledOnceWithMatch(fakeUser)).to.be.true;
         });
 
-        //Di seguito testo lo scenario in cui ottengo status code 4040 e non trovo i dettagli dell'utente nel DB
+        //Di seguito testo lo scenario in cui ottengo status code 404 e non trovo i dettagli dell'utente nel DB
         it('should return 404 failing to find the User searched with the ID', async ()=> {
 
             //ARRANGE
@@ -177,5 +177,37 @@ describe('UserController',() => {
             expect(res.json.calledOnceWithMatch({message: "ID Utente non trovato"})).to.be.true;
         });
 
+        //Di seguito testo lo scenario in cui ottengo status code 500 e si interrompe la comunicazione con il DB
+        it('should return status code 500 and an error message when the comunication with the DB breaks down', async () => {
+            
+            //ARRANGE
+            //Creo un utente finto da recuperare
+            const findUserByIdStub = sinon.stub(User, 'findById').rejects(new Error('DB failure'));
+
+            // Creo un req finto con un finto params (id: 123)
+            const req = {
+                params: {id: '123'}
+            };
+
+            //res finto 
+            const res = {
+                status: sinon.stub().returnsThis(),
+                json: sinon.spy()
+            };
+
+            //ACT
+            //Simulo un'interruzione della comunicazione con il DB
+            await userController.getUserById(req, res);
+
+            //ASSERT
+            //Verifico che il DB sia stato chiamato
+            expect (findUserByIdStub.calledOnceWith('123')).to.be.true;
+
+            // Verifico di ottenere uno status code 500
+            expect(res.status.calledOnceWith(500)).to.be.true;
+
+            //Verifico di ottenere un messaggio d'errore
+            expect(res.json.calledOnceWithMatch({message:'DB failure'})).to.be.true;
+        });
     });
 });
