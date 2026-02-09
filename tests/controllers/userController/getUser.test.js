@@ -100,5 +100,82 @@ describe('UserController',() => {
             expect(res.json.calledOnce).to.be.true;
             expect(res.json.firstCall.args[0]).to.have.property('message','DB failure');
           });
-        });
     });
+
+    describe('getUserById', () => {
+        afterEach(() => {
+            sinon.restore();
+        });
+        
+        //Di seguito testo lo scenario in cui ottengo status code 200 ed i dettagli dell'utente cercato con ID
+        it('should return 200 and the user when ID exists', async() =>{
+            
+            //ARRANGE -> creo una una replica del file controller
+            const fakeUser = {
+                _id:'123',
+                name: 'Mario',
+                email: 'mario@email.com'
+            };
+
+            //Stub: simuliamo il DB che trova l'utente
+            const findByIdStub = sinon.stub(User, 'findById').resolves(fakeUser);
+
+            //req con params.id (IMPORTANTE)
+            const req = {
+                params: { id: '123' }
+            };
+
+            //res finto 
+            const res =  {
+                status: sinon.stub().returnsThis(),
+                json: sinon.spy()
+            };
+
+            //ACT -> Qua faccio partire le logiche da testare, le stesse che regolano il file originario
+            await userController.getUserById(req, res);
+
+            //ASSERT -> qui controllo le outcomes
+            //Verifico che sia stato chiamato il database
+            expect(findByIdStub.calledOnceWith('123')).to.be.true;
+
+            //Verifico di ottenere la risposta 200
+            expect(res.status.calledOnceWith(200)).to.be.true;
+
+            //Verifico di ottenere l'utente creato 
+            expect(res.json.calledOnceWithMatch(fakeUser)).to.be.true;
+        });
+
+        //Di seguito testo lo scenario in cui ottengo status code 4040 e non trovo i dettagli dell'utente nel DB
+        it('should return 404 failing to find the User searched with the ID', async ()=> {
+
+            //ARRANGE
+            //Simuliamo che il DB NON trovi l'utente
+            const findByIdStub = sinon.stub(User, 'findById').resolves(null);
+
+            //req con params.id (qualsiasi ID finto)
+            const req = {
+                params: { id: 'nonexsistent-id'}
+            };
+
+            //res finto
+            const res = {
+                status: sinon.stub().returnsThis(),
+                json: sinon.spy()
+            };
+
+            //ACT
+            await userController.getUserById(req, res);
+            
+            //ASSERT
+            //Controllo che findById sia stato chiamato con l'ID corretto
+            expect(findByIdStub.calledOnceWith('nonexsistent-id')).to.be.true;
+
+            //Controllo che lo status sia 404
+            expect(res.status.calledOnceWith(404)).to.be.true;
+
+            //Controllo che il json restituisca il messaggio corretto
+            expect(res.json.calledOnceWithMatch({message: "ID Utente non trovato"})).to.be.true;
+        });
+
+    });
+});
