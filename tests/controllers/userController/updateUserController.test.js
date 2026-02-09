@@ -116,6 +116,38 @@ describe('Update User Controller', () => {
 
         updateStub.restore();
     });
+    it('should return 500 if the DB fails', async() => {
+        //ARRANGE 
+        const req = {
+            params: {id: '123fakeid'},
+            body: {
+                name:'Luigi',
+                surname: 'Verdi',
+                email: 'luigi@example.com'
+            }
+        };
+        const res = {
+            status: sinon.stub().returnsThis(),
+            json: sinon.spy()
+        };
+
+        //Stub di findByIdAndUpdate per simulare errore DB
+
+        const updateStub = sinon.stub(User, 'findByIdAndUpdate').rejects(new Error('DB failure'));
+
+        //ACT
+        await userController.updateUser(req,res);
+
+        //ASSERT
+        expect(updateStub.calledOnce).to.be.true;
+
+        expect(res.status.calledOnceWith(500)).to.be.true;
+
+        expect(res.json.calledOnceWithMatch({message: 'DB failure'})).to.be.true;
+
+        // Ripristino Stub
+        updateStub.restore();
+    });
 
 
 });
