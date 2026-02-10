@@ -122,7 +122,8 @@ Quindi:
             if (!product)
                 return res.status(404).json({message: "Impossibile eliminare prodotto non trovato"});
             
-            return res.json({message: "Prodotto cancellato correttamente"});
+            return res.status(200).json({ message: "Product deleted successfully" });
+
         
         } catch (error) {
                 return res.status(500).json ({message: error.message});

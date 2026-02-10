@@ -79,7 +79,7 @@
         };
 
         //cancello l'utente indicato con l'ID ed ottengo null in quanto ID inesistente
-        deleteStub = sinon.stub(User, 'findByIdAndDelete').resolves(null);
+        deleteStub = sinnon.stub(User, 'findByIdAndDelete').resolves(null);
 
         //ACT
         await userController.deleteUser(req, res);
