@@ -23,11 +23,14 @@ const userController = require('../../../src/config/controllers/userController')
 const User = require('../../../src/config/models/User');
 
 describe('Update User Controller', () => {
+    
+    //afterEach dopo ogni test, ripulisce gli stub
     afterEach(()=> {
         sinon.restore();
     });
 
-    it('should update a user and return 200', async()=> {
+    //Nel blocco "it" specifico l'aspettativa per la funzione che vado a testare
+    it('should update a registered user and return 200', async()=> {
     
     //ARRANGE
     //Creo un req finto con params.id e body con i nuovi dati dell'utente
@@ -56,7 +59,7 @@ describe('Update User Controller', () => {
         email: 'luigi@example.com'
     };
 
-    //Stubbo User.findByIdAndUpdate per simulare il SB
+    //Stubbo User.findByIdAndUpdate per simulare il DB
     const updateStub = sinon.stub(User, 'findByIdAndUpdate').resolves(fakeUpdatedUser);
 
     //ACT
@@ -148,6 +151,4 @@ describe('Update User Controller', () => {
         // Ripristino Stub
         updateStub.restore();
     });
-
-
 });
