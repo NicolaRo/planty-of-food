@@ -20,11 +20,6 @@ const userController = require('../../../src/config/controllers/userController')
 //Importo il modello User reale 
 const User = require('../../../src/config/models/User');
 
-/* CONSOLE LOG PER DEBUG
-
-console.log(User);            // chi è User?
-console.log(userController);  // chi è getUsers? */
-
 //Descrivo il gruppo di test relativo al controller
 describe('UserController',() => {
 
@@ -48,18 +43,20 @@ describe('UserController',() => {
             //stub di User.find per resituire i fakeUsers
             const findStub = sinon.stub(User, 'find').resolves(fakeUsers);
       
-            //Creo req e res finti
+            //Creo req passata dal client contenente la query dell'utente 
             const req = { query: {} }; 
+
+            //Creo una res con sinon.spy per controllare cosa viene inviato
             const res = {
               status: sinon.stub().returnsThis(), // permette chain .json()
               json: sinon.spy() // Spy per controllare cosa viene inviato
             };
       
-            //2# ACT
+            //ACT
             //Chiamo il controller con i finti req / res
             await userController.getUsers(req, res);
       
-            //3# ASSERT
+            //ASSERT
             //Verifico che User.find() sia stata chiamata
             expect(findStub.calledOnce).to.be.true;
 
@@ -71,7 +68,7 @@ describe('UserController',() => {
 
             });
             
-          // --- SCENARIO A: SUCCESSO ---
+          // --- SCENARIO B: DB FALLISCE ---
 
           it('should return 500 when DB comunication break down', async() =>{
             
@@ -79,14 +76,17 @@ describe('UserController',() => {
             //Stub di User.find che simula errore nel DB
             const findStub = sinon.stub(User, 'find').rejects(new Error('DB failure'));
 
+            //Creo req passata dal client contenente la query dell'utente 
             const req = { query: {} };
+
+            //Creo una res con sinon.spy per controllare cosa viene inviato
             const res = {
                 status: sinon.stub().returnsThis(),
                 json: sinon.spy()
             };
 
             //ACT
-
+            //Chiamo il controller con i finti req / res
             await userController.getUsers(req, res);
 
             //ASSERT
@@ -152,7 +152,7 @@ describe('UserController',() => {
             //Simuliamo che il DB NON trovi l'utente
             const findByIdStub = sinon.stub(User, 'findById').resolves(null);
 
-            //req con params.id (qualsiasi ID finto)
+            //req con params.id (qualsiasi ID non esistente)
             const req = {
                 params: { id: 'nonexsistent-id'}
             };
