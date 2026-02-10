@@ -25,7 +25,7 @@
       //nel blocco "it" specifico l'aspettativa per la funzione che vado a testare
       it('should create a product and return 201', async () =>{
 
-        //il req. (request HTTP) che ottengo dal clent mi aspetto che passi un oggetto con queste caratteristiche
+        //il req. (request HTTP) che ottengo dal client mi aspetto che passi un oggetto con queste caratteristiche
         const req = {
           body: {
             name: "pomodoro",
