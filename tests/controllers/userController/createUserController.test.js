@@ -38,7 +38,7 @@ describe('UserController', () => {
         }
       };
 
-      // fakeUser è ciò che ottengo nel DB una volta che la funzione createUser viene eseguita correttamente (N.B.: è stato creato un _id: così come avverrebbe in MongoDB)
+      // fakeUser è ciò che ottengo nel DB una volta che la funzione createUser viene eseguita correttamente (N.B.: viene creato un _id: così come avverrebbe in MongoDB)
       const fakeUser = {
         name: "Mario",
         surname: "Rossi",
@@ -88,7 +88,7 @@ describe('UserController', () => {
         json: sinon.spy()
       };
 
-      // Per verificarlo tento di creare un nuovo USer
+      // Per verificarlo tento di creare un nuovo User
       const createStub = sinon.stub(User, 'create');
 
       // Attendo la res.
@@ -101,7 +101,7 @@ describe('UserController', () => {
       expect(createStub.notCalled).to.be.true;
 
 
-      // Ripristino tutto alla fine della verifica così da non intaccare l'esito di test futuri.
+      //Ripristino lo Stub alla fine della verifica così non intacca l'esito di test futuri.
       createStub.restore();
 
     });
@@ -139,7 +139,7 @@ describe('UserController', () => {
       // Verifico che il messaggio dell'errore sia stato passato in res.json
       expect(res.json.calledWithMatch({ message: "DB failure" })).to.be.true;
     
-      // Ripristino User.create per non contaminare gli altri test
+      // Ripristino Stub per non contaminare gli altri test
       createStub.restore();
     
     });    
