@@ -1,4 +1,4 @@
-/* prosuctController -> CRUD
+/* productController -> CRUD
     
 1. CREATE -> (createProduct)
   1.1 Riceve i dati dal client(req.body) 
@@ -51,8 +51,10 @@
         // Qua nella variabile createStub
         const createStub = sinon.stub(Product, 'create').resolves(fakeProduct);
 
+        //ACT
         await productController.createProduct(req, res);
 
+        //ASSERT
         expect(res.status.calledWith(201)).to.be.true;
 
         expect(res.json.calledOnce).to.be.true;
