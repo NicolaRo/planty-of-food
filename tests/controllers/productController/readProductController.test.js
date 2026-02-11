@@ -18,7 +18,7 @@
     const { expect } = require('chai');
     const sinon = require('sinon');
 
-    //Importo producController contenente le funzioni che voglio testare
+    //Importo productController contenente le funzioni che voglio testare
     const productController = require ('../../../src/config/controllers/productController');
     
     //Importo il modello Product reale
@@ -27,7 +27,7 @@
     //Descrivo il gruppo di test relativo al controller
     describe('ProductController', () => {
 
-      //Desctiveo il gruppo di test relativo alla funzione getProduct
+      //Descrivo il gruppo di test relativo alla funzione getProduct
       describe('getProducts', () =>{
 
         //afterEach dopo ogni test, ripulisce gli stub
@@ -38,7 +38,7 @@
         //--- SCENARIO A: SUCCESSO ---
 
         //Nel blocco "it" specifico l'aspettativa per la funzione che vado a testare
-        it('should return 200 and an array of products whn DB call succeeds', async () => {
+        it('should return 200 and an array of products when DB call succeeds', async () => {
 
           //ARRANGE
           //Creo un array finto di Prodotti (fakProduct) per simulare il DB
@@ -67,7 +67,7 @@
           //Verifico che ritorni (200) se va tutto bene
           expect(res.status.calledOnceWith(200)).to.be.true;
 
-          //Verifico che torniun jsno con l'elenco dei Products
+          //Verifico che torni un json con l'elenco dei Products
           expect(res.json.calledOnceWithMatch(fakeProducts)).to.be.true;
         });
 
