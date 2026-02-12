@@ -209,7 +209,7 @@ const updateOrder = async (req, res) => {
       if (status) {
         const allowedStatuses = ["pending", "paid", "delivered"];
         if (!allowedStatuses.includes(status)) {
-          throw new Error("Stato ordine non valido");
+          const err = new Error("Stato ordine non valido");
           err.status = 422; //Unprocessable Entity
           throw err;
         }

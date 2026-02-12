@@ -42,7 +42,7 @@
         }
       };
 
-      // Creo un finto res co:
+      // Creo un finto res con:
       // - Status: stub che restituisce se stesso per permetterechain.status().json()
       // - json: spy per osservare cosa viene passato
       const res = {
@@ -66,7 +66,7 @@
       await productController.updateProduct(req, res);
 
       //ASSERT
-      //Controllo che la funzione abbia chiamatoil DB con ID e body corretti
+      //Controllo che la funzione abbia chiamato il DB con ID e body corretti
       expect(updateStub.calledOnce).to.be.true;
 
       expect(updateStub.firstCall.args[0]).to.equal('123fakeId');

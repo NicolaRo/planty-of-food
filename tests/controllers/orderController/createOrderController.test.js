@@ -24,10 +24,8 @@ const { createOrder } = require('../../../src/config/controllers/orderController
 //Descrivo cosa voglio testare: la funzione createProduct all'interno del file productController
 describe('OrderController', () => {
   describe('createOrder', () => {
-    
-    // ============================================================
+  
     // SETUP GLOBALE - Creo la finta sessione per TUTTI i test
-    // ============================================================
     let fakeSession;
 
     beforeEach(() => {
