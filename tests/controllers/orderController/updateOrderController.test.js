@@ -15,7 +15,7 @@
       • Order.findByIdAndUpdate genera errore
       • Deve ritornare res.status(500) + messaggio di errore
 */
-
+//Importo Chai Sinon e Mongoose come strumenti di test
 const { expect } = require('chai');
 const sinon = require('sinon');
 const mongoose = require('mongoose');
@@ -29,12 +29,11 @@ const { updateOrder } = require('../../../src/config/controllers/orderController
 // Importo lo stockHelper
 const stockHelper = require('../../../src/config/utils/stockHelper');
 
+//Descrivo cosa voglio testare: la funzione createProduct all'interno del file productController
 describe('Update Order Controller', () => {
   describe('updateOrder', () => {
 
-    // ============================================================
     // SETUP GLOBALE - Creo la finta sessione per TUTTI i test
-    // ============================================================
     let fakeSession;
 
     beforeEach(() => {
@@ -151,9 +150,24 @@ it('should add new products to order and return 200', async () => {
   
     // Stub di Order.findById
     sinon.stub(Order, 'findById').resolves(fakeOrder);
+
+    //Creo un prodotto finto che il database "ritornerà"
+    const fakeProduct = {
+        _id: newProductId,
+        name: 'Test Product',
+        quantity: 100 // Questo prodotto ha 100 pezzi disponibili
+    };
   
-    // Stub di updateProductStock
-    sinon.stub(stockHelper, 'updateProductStock').resolves();
+  //Quando il codice chiede Product.findById(), rispondo con il prodotto finto
+  sinon.stub(Product, 'findById').returns({
+    session: sinon.stub().resolves(fakeProduct)
+  });
+  
+  //Quando il codice aggiorna il prodotto, faccio finta che vada bene
+  sinon.stub(Product, 'findByIdAndUpdate').resolves(fakeProduct);
+  
+  /*   // Stub di updateProductStock
+    sinon.stub(stockHelper, 'updateProductStock').resolves(); */
   
     // Nuovi prodotti da aggiungere
     const newProducts = [
@@ -178,13 +192,12 @@ it('should add new products to order and return 200', async () => {
     // ACT
     await updateOrder(req, res);
   
-    // ASSERT
-    // 1. Verifico che updateProductStock sia stato chiamato
-    expect(stockHelper.updateProductStock.called).to.be.true;
-  
-    // 2. Verifico che sia stato chiamato con i parametri corretti
-    expect(stockHelper.updateProductStock.calledWith(newProducts, fakeSession)).to.be.true;
-  
+    // ASSERT  
+    // 1. Verifico che Product.findById sia stato chiamato (per controllare lo stock)
+    expect(Product.findById.called).to.be.true;
+
+    // 2. Verifico che Product.findByIdAndUpdate sia stato chiamato (per aggiornare lo stock)
+    expect(Product.findByIdAndUpdate.called).to.be.true;
     // 3. Verifico che i nuovi prodotti siano stati aggiunti
     expect(fakeOrder.products.length).to.equal(2); // 1 esistente + 1 nuovo
   
