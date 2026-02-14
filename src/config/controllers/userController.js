@@ -1,41 +1,39 @@
-const User = require("../models/User"); //Ottengo l'oggetto 'User'.
-
-// DEBUG *** TEMPORANEO ***
+/* // DEBUG *** TEMPORANEO ***
 const createUserDebug = async (req, res) => {
     console.log('DEBUG req.body:', req.body);
     res.json({ message: 'DEBUG completato' });
-};
+}; */
 
-/* userController responsabile per ->
-
-CRUD
+/* userController -- RESPONSABILITÀ FILE -->
 
 1) Creare un nuovo utente
-    1.1 Validare un utente
-    1.2 creare un utente
+    1.1) Validare un utente
+    1.2) creare un utente
 
 2) Reperire gli utenti
-    2.1 Recuperare tutti gli utenti (req.Users.body);
-        2.1.1 Recuperare tutti gli utenti 
-        2.1.2 Possibile filtro nome, email
-        2.1.3 Restituire array Utenti -> HTTP 200 
-    2.2 Recuperare un utente con ID specifico (getUserById);
-        2.2.1 Recuperare un Utente specifico 
-        2.2.2 Se non trovato -> 404
-        2.2.3 Restituire Utente -> HTTP 200
+    2.1) Recuperare tutti gli utenti (req.Users.body);
+        2.1.1) Recuperare tutti gli utenti 
+        2.1.2) Possibile filtro nome, email
+        2.1.3) Restituire array Utenti -> HTTP 200 
+    2.2) Recuperare un utente con ID specifico (getUserById);
+        2.2.1) Recuperare un Utente specifico 
+        2.2.2) Se non trovato -> 404
+        2.2.3) Restituire Utente -> HTTP 200
 
 3) Aggiornare gli utenti
-    3.1 Ricevere ID Utente
-    3.2 Validare ID Utente = se non esiste -> 404
-    3.3 Aggiornare le informazioni di un utente con ID (getUserByIdAndUpdate);
-        3.3.1 Verificare che i parametri/info che si vogliono aggiornare siano accettate da mongoose
-    3.4 Restituire un Utente aggiornato
+    3.1) Ricevere ID Utente
+    3.2) Validare ID Utente = se non esiste -> 404
+    3.3) Aggiornare le informazioni di un utente con ID (getUserByIdAndUpdate);
+        3.3.1) Verificare che mongoose  accetti i parametri/info da aggiornare 
+    3.4) Restituire un Utente aggiornato
 
 4) Eliminare un utente
     4.1 Ricevere ID Utente
     4.2 Validare ID Utente = se non esiste -> 404
     4.3 Eliminare Utente -> Utente.findUtenteByIdAndDelete(id);
     4.4 Confermare avvenuta eliminazione  */
+
+    const User = require("../models/User"); //Ottengo l'oggetto 'User'.
 
 /* ############-- CREATE UTENTE --############### */
     //1.1 Validare un utente

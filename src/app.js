@@ -24,8 +24,6 @@ app.use(mongoSanitize({
   },
 }));
 
-/* // 3. Parse URL-encoded data (form) --> questo parsa i form
-app.use(express.urlencoded({ extended: true })); */
 
 // 3. Logging semplice per debug
 app.use((req, res, next) => {

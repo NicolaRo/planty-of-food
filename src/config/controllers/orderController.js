@@ -1,29 +1,34 @@
+/* orderController.js RESPONSABILITÀ DEL FILE
+
+1. CREATE ORDINE
+  1.1) Validare utente (User.findById)
+  1.2) Validare il prodotto e disponibilità (Product.findById, e quantità ≥ richiesta)
+  1.3) Aggiornare quantità dei prodotti
+  1.4) Salvare ordine (Order.create)
+  1.5) Collegare ordine all'utente (e ad un gruppo se presente)
+
+2. READ ORDINI
+  2.1) Tutti (getOrders)
+  2.3) Solo ordini utente loggato (getUserOrders)
+  2.4)Singolo ordine per ID (getOrdersById)
+
+3. UPDATE ORDINI
+  3.1) Trova l'ordine in base all'ID passato nella query
+  3.2) Cambiare stato (updateOrderStatus: pending -> paid -> delivered)
+  3.3) Aggiornare quantità prodotti
+
+4. DELETE ORDINI
+  4.1) Trova l'ordine in base all'ID passato nella query
+  4.2) Elimina l'ordine
+  4.3) Aggiorna lo stock prodotti
+  4.4) Se non trova l'ID ordine restituisce un messaggio d'errore */
+
 const mongoose = require("mongoose"); //Importo mongoose per la gestione del database su MongoDB.
 const Order = require("../models/Order"); // Importo l'oggetto 'Order' dal modello mongoose.
 const Product = require("../models/Product"); //Importo l'oggetto 'Product'.
 const User = require("../models/User"); //Importo l'oggetto 'User'.
 
 const { updateProductStock } = require("../utils/stockHelper.js"); //Importo la funzione helper per aggiornare lo stock prodotti
-//orderController.js deve -- RESPONSABILITÀ DEL FILE --> Create - Read - Update - Delete
-
-//CREATE UN ORDINE
-// Validare utente (User.findById)
-// Validare il prodotto e disponibilità (Product.findById, e quantità ≥ richiesta)
-// Aggiornare quantità dei prodotti
-// Salvare ordine (Order.create)
-// Collegare ordine all'utente (e ad un gruppo se presente)
-
-//READ GLI ORDINI
-// Tutti (getOrders)
-// Solo ordini utente loggato (getUserOrders)
-// Singolo ordine per ID (getOrdersById)
-
-//UPDATE GLI ORDINI
-// Cambiare stato (updateOrderStatus: pending -> paid -> delivered)
-// Aggiornare quantità prodotti
-
-//DELETE GLI ORDINI
-// Opzionale (deleteOrder)
 
 /* ############-- CREARE UN ORDINE --############### */
 //1.1 Creazione del nuovo ordine:

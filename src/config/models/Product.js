@@ -1,19 +1,3 @@
-/* const mongoose = require("mongoose");
-
-const productSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  price: { type: Number, required: true },
-  available: { type: Boolean, default: true },
-  description: { type: String },
-  category: { type: String }
-}, { timestamps: true }); // crea createdAt e updatedAt automaticamente
-
-const Product = mongoose.model("Product", productSchema);
-
-module.exports = Product;
-
- */
-
 //importo mongoose, definisce i parametri del DB
 const mongoose = require("mongoose");
 
