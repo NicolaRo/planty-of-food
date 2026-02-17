@@ -13,8 +13,8 @@ const router = express.Router();
 
 const userController = require('../controllers/userController');
 
-// funzione di debug
-router.post("/debug", userController.createUserDebug);
+/* // funzione di debug
+router.post("/debug", userController.createUserDebug); */
 
 /* ############-- ROTTE GET --############### */
 
